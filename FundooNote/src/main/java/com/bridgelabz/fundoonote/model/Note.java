@@ -4,12 +4,10 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -39,6 +37,12 @@ public class Note {
     private LocalDateTime createdTimeStamp;
     @UpdateTimestamp
     private LocalDateTime updateTimeStamp;
+
+    @ManyToMany
+    @JoinTable( name = "Label_Name",
+            joinColumns = { @JoinColumn (name = "Note_id")},
+            inverseJoinColumns = { @JoinColumn (name = "label_id") })
+    private List<Label> labels;
 
 
 }
