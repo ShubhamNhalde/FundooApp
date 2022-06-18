@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 public class NoteService implements INoteService {
 
+    private static final long EXPIRE_TOKEN_AFTER_MINUTES = 15;
     @Autowired
     NoteRepository noteRepository;
 
@@ -40,7 +43,7 @@ public class NoteService implements INoteService {
     }
 
     private User gettingUser(String token) {
-        User user = restTemplate.getForObject("http://localhost:9000/user/findById/" + token, User.class);
+        User user = restTemplate.getForObject("http://localhost:9002/user/findById/" + token, User.class);
         if (user == null) {
             throw new NoteException(HttpStatus.BAD_REQUEST, "User Not Found");
         }
@@ -105,13 +108,28 @@ public class NoteService implements INoteService {
     @Override
     public String deleteNote(String token, int noteId) {
         Note note = gettingNote(token, noteId);
-
-        if (note.getIsTrashed()){
+        LocalDateTime tokenCreationDate = note.getCreatedTimeStamp();
+        if (note.getIsTrashed() | isTokenExpired(tokenCreationDate)){
             noteRepository.delete(note);
             return "Deleted successfully";
-        }else {
+        }
+        else {
             return "First move to trash";
         }
+    }
+
+    /**
+     * Check whether the created token expired or not.
+     *
+     * @param tokenCreationDate
+     * @return true or false
+     */
+    private boolean isTokenExpired(final LocalDateTime tokenCreationDate) {
+
+        LocalDateTime now = LocalDateTime.now();
+        Duration diff = Duration.between(tokenCreationDate, now);
+
+        return diff.toMinutes() >= EXPIRE_TOKEN_AFTER_MINUTES;
     }
 
 

@@ -12,7 +12,10 @@ public interface INoteService {
     List<Note> viewNotes(String token);
 
     public Note pinNote(String token, int noteId);
+
     public Note archieveNote(String token, int noteId);
+
     public String deleteNote(String token, int noteId);
+
     public Note toggleTrashNote(String token, int noteId);
 }
